@@ -1,0 +1,241 @@
+<?php
+
+use App\Domains\Core\Http\Controllers\ContextController;
+use App\Domains\Core\Http\Middleware\EnsureActiveContext;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Management\ApprovalController;
+use App\Http\Controllers\Management\AuditController;
+use App\Http\Controllers\Management\BranchController;
+use App\Http\Controllers\Management\BusinessUnitController;
+use App\Http\Controllers\Management\DashboardController;
+use App\Http\Controllers\Management\DepartmentController;
+use App\Http\Controllers\Management\DocumentController;
+use App\Http\Controllers\Management\EventController;
+use App\Http\Controllers\Management\FinanceController;
+use App\Http\Controllers\Management\InventoryController;
+use App\Http\Controllers\Management\LocationController;
+use App\Http\Controllers\Management\OrganizationController;
+use App\Http\Controllers\Management\ProcurementController;
+use App\Http\Controllers\Management\ProductionController;
+use App\Http\Controllers\Management\ProjectController;
+use App\Http\Controllers\Management\ProjectTaskController;
+use App\Http\Controllers\Management\ReportController;
+use App\Http\Controllers\Management\RoleController;
+use App\Http\Controllers\Management\SettingsController;
+use App\Http\Controllers\Management\UserController;
+use App\Http\Controllers\Restaurant\KitchenController;
+use App\Http\Controllers\Restaurant\PosController;
+use App\Http\Controllers\Restaurant\RestaurantCategoryController;
+use App\Http\Controllers\Restaurant\RestaurantDashboardController;
+use App\Http\Controllers\Restaurant\RestaurantExpenseController;
+use App\Http\Controllers\Restaurant\RestaurantMenuController;
+use App\Http\Controllers\Restaurant\RestaurantNavigationController;
+use App\Http\Controllers\Restaurant\RestaurantShiftController;
+use App\Http\Controllers\Restaurant\RestaurantStoreController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::middleware('auth')->prefix('management')->name('management.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/finance', [FinanceController::class, 'index'])->name('finance');
+
+    Route::get('/approvals', [ApprovalController::class, 'index'])->name('approvals');
+    Route::post('/approvals/po/{order}', [ApprovalController::class, 'approvePurchaseOrder'])->name('approvals.po');
+    Route::post('/approvals/po/{order}/reject', [ApprovalController::class, 'rejectPurchaseOrder'])->name('approvals.po.reject');
+    Route::post('/approvals/invoice/{invoice}', [ApprovalController::class, 'approveSupplierInvoice'])->name('approvals.invoice');
+
+    Route::get('/procurement', [ProcurementController::class, 'index'])->name('procurement');
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory');
+    Route::get('/production', [ProductionController::class, 'index'])->name('production');
+    Route::get('/events', [EventController::class, 'index'])->name('events');
+    Route::get('/organization', [OrganizationController::class, 'index'])->name('organization.index');
+    Route::get('/organization/home', [OrganizationController::class, 'index'])->name('organization');
+    Route::get('/organization/business-units', [OrganizationController::class, 'businessUnits'])->name('organization.business-units');
+    Route::get('/organization/branches', [OrganizationController::class, 'branches'])->name('organization.branches');
+    Route::get('/organization/structure', [OrganizationController::class, 'structure'])->name('organization.structure');
+
+    Route::resource('departments', DepartmentController::class)->names([
+        'index' => 'organization.departments',
+    ]);
+    Route::resource('locations', LocationController::class)->names([
+        'index' => 'organization.locations',
+    ]);
+
+    Route::get('/business-units/create', [BusinessUnitController::class, 'create'])->name('business-units.create-direct');
+    Route::post('/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store-direct');
+    Route::get('/organization/{organization}/business-units/create', [BusinessUnitController::class, 'create'])->name('business-units.create');
+    Route::post('/organization/{organization}/business-units', [BusinessUnitController::class, 'store'])->name('business-units.store');
+    Route::post('/business-units/{businessUnit}/toggle', [BusinessUnitController::class, 'toggleStatus'])->name('business-units.toggle');
+    Route::resource('/business-units', BusinessUnitController::class)->only(['show', 'edit', 'update', 'destroy']);
+
+    Route::get('/branches/create', [BranchController::class, 'create'])->name('branches.create-direct');
+    Route::post('/branches', [BranchController::class, 'store'])->name('branches.store-direct');
+    Route::get('/business-units/{businessUnit}/branches/create', [BranchController::class, 'create'])->name('branches.create');
+    Route::post('/business-units/{businessUnit}/branches', [BranchController::class, 'store'])->name('branches.store');
+    Route::post('/branches/{branch}/toggle', [BranchController::class, 'toggleStatus'])->name('branches.toggle');
+    Route::resource('/branches', BranchController::class)->only(['show', 'edit', 'update', 'destroy']);
+
+    Route::resource('/users', UserController::class)->except(['show']);
+
+    Route::resource('/projects', ProjectController::class);
+    Route::get('/projects/{project}/tasks/create', [ProjectTaskController::class, 'create'])->name('project-tasks.create');
+    Route::post('/projects/{project}/tasks', [ProjectTaskController::class, 'store'])->name('project-tasks.store');
+    Route::resource('/project-tasks', ProjectTaskController::class)->only(['edit', 'update', 'destroy']);
+
+    Route::resource('/documents', DocumentController::class);
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports/export/{type}', [ReportController::class, 'export'])->name('reports.export');
+    Route::get('/audit', [AuditController::class, 'index'])->name('audit');
+    Route::get('/audit/export', [AuditController::class, 'export'])->name('audit.export');
+    Route::resource('/roles', RoleController::class)->except(['show']);
+
+    Route::get('/settings/system', [SettingsController::class, 'system'])->name('settings.system');
+    Route::post('/settings/system', [SettingsController::class, 'updateSystem'])->name('settings.system.update');
+    Route::get('/settings/organization', [SettingsController::class, 'organization'])->name('settings.organization');
+    Route::post('/settings/organization', [SettingsController::class, 'updateOrganization'])->name('settings.organization.update');
+    Route::get('/settings/financial', [SettingsController::class, 'financial'])->name('settings.financial');
+    Route::post('/settings/financial', [SettingsController::class, 'updateFinancial'])->name('settings.financial.update');
+    Route::get('/settings/numbering', [SettingsController::class, 'numbering'])->name('settings.numbering');
+    Route::post('/settings/numbering', [SettingsController::class, 'updateNumbering'])->name('settings.numbering.update');
+    Route::get('/settings/tax', [SettingsController::class, 'tax'])->name('settings.tax');
+    Route::post('/settings/tax', [SettingsController::class, 'updateTax'])->name('settings.tax.update');
+    Route::get('/settings/notifications', [SettingsController::class, 'notifications'])->name('settings.notifications');
+    Route::post('/settings/notifications', [SettingsController::class, 'updateNotifications'])->name('settings.notifications.update');
+});
+
+Route::middleware('auth')->prefix('restaurant')->name('restaurant.')->group(function () {
+
+    // 1. Dashboard
+    Route::get('/dashboard', [RestaurantDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/sales', [RestaurantNavigationController::class, 'placeholder'])->name('dashboard.sales');
+    Route::get('/dashboard/orders', [RestaurantNavigationController::class, 'placeholder'])->name('dashboard.orders');
+    Route::get('/dashboard/stock', [RestaurantNavigationController::class, 'placeholder'])->name('dashboard.stock');
+    Route::get('/dashboard/cash', [RestaurantNavigationController::class, 'placeholder'])->name('dashboard.cash');
+
+    // 2. Sales / POS
+    Route::get('/pos', [PosController::class, 'index'])->name('pos'); // New Sale
+    Route::post('/pos/order', [PosController::class, 'storeOrder'])->name('pos.order');
+    Route::get('/orders', [PosController::class, 'orders'])->name('orders'); // Orders
+    Route::get('/sales/history', [RestaurantNavigationController::class, 'placeholder'])->name('sales.history');
+    Route::get('/sales/refunds', [RestaurantNavigationController::class, 'placeholder'])->name('sales.refunds');
+    Route::get('/sales/discounts', [RestaurantNavigationController::class, 'placeholder'])->name('sales.discounts');
+    Route::get('/sales/voids', [RestaurantNavigationController::class, 'placeholder'])->name('sales.voids');
+
+    // Kitchen (To be removed from menu later, but kept for now)
+    Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen');
+    Route::post('/kitchen/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.status');
+
+    // 3. Products & Menu
+    Route::get('/menu', [RestaurantMenuController::class, 'index'])->name('menu'); // Products
+    Route::post('/menu', [RestaurantMenuController::class, 'store'])->name('menu.store');
+    Route::put('/menu/{item}', [RestaurantMenuController::class, 'update'])->name('menu.update');
+    Route::delete('/menu/{item}', [RestaurantMenuController::class, 'destroy'])->name('menu.destroy');
+    Route::post('/menu/{item}/toggle', [RestaurantMenuController::class, 'toggleStatus'])->name('menu.toggle');
+    Route::get('/menu/search', [RestaurantMenuController::class, 'search'])->name('menu.search');
+    Route::post('/menu/{item}/restock', [RestaurantMenuController::class, 'restock'])->name('menu.restock');
+
+    // Categories
+    Route::get('/menu/categories', [RestaurantCategoryController::class, 'index'])->name('menu.categories');
+    Route::post('/menu/categories', [RestaurantCategoryController::class, 'store'])->name('menu.categories.store');
+    Route::put('/menu/categories/{category}', [RestaurantCategoryController::class, 'update'])->name('menu.categories.update');
+    Route::delete('/menu/categories/{category}', [RestaurantCategoryController::class, 'destroy'])->name('menu.categories.destroy');
+
+    Route::get('/menu/prices', [RestaurantNavigationController::class, 'placeholder'])->name('menu.prices');
+
+    // 4. Inventory / Store
+    Route::get('/store', [RestaurantStoreController::class, 'index'])->name('store'); // Stock Overview
+    Route::post('/store/receive', [RestaurantStoreController::class, 'receive'])->name('store.receive');
+    Route::post('/store/wastage', [RestaurantStoreController::class, 'wastage'])->name('store.wastage');
+    Route::get('/store/issue', [RestaurantNavigationController::class, 'placeholder'])->name('store.issue');
+    Route::get('/store/transfer', [RestaurantNavigationController::class, 'placeholder'])->name('store.transfer');
+    Route::get('/store/adjustment', [RestaurantNavigationController::class, 'placeholder'])->name('store.adjustment');
+    Route::get('/store/count', [RestaurantNavigationController::class, 'placeholder'])->name('store.count');
+    Route::get('/store/movement', [RestaurantNavigationController::class, 'placeholder'])->name('store.movement');
+    
+    // 4.1 Store Locations
+    Route::get('/locations', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'index'])->name('locations.index');
+    Route::post('/locations', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'store'])->name('locations.store');
+    Route::put('/locations/{location}', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'update'])->name('locations.update');
+    Route::post('/locations/{location}/default', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'setDefaultSalesLocation'])->name('locations.default');
+
+
+    // 5. Purchasing
+    Route::get('/purchasing/suppliers', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'suppliers'])->name('purchasing.suppliers');
+    Route::post('/purchasing/suppliers', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'storeSupplier'])->name('purchasing.suppliers.store');
+    
+    Route::get('/purchasing/requests', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'index'])->name('purchasing.requests');
+    Route::get('/purchasing/requests/create', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'createRequest'])->name('purchasing.requests.create');
+    Route::get('/purchasing/requests/{id}/edit', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'editRequest'])->name('purchasing.requests.edit');
+    Route::put('/purchasing/requests/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'updateRequest'])->name('purchasing.requests.update');
+    Route::post('/purchasing/requests', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'storeRequest'])->name('purchasing.store-request');
+    Route::post('/purchasing/submit-draft/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'submitDraft'])->name('purchasing.submit-draft');
+    Route::post('/purchasing/receive/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'receive'])->name('purchasing.receive');
+    
+    Route::get('/purchasing/orders', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'orders'])->name('purchasing.orders');
+    Route::get('/purchasing/received', [RestaurantNavigationController::class, 'placeholder'])->name('purchasing.received');
+
+    // 6. Cash & Shifts
+    Route::get('/shifts', [RestaurantShiftController::class, 'index'])->name('shifts'); // Current Shift
+    Route::post('/shifts/open', [RestaurantShiftController::class, 'open'])->name('shifts.open'); // Open Shift
+    Route::post('/shifts/{shift}/close', [RestaurantShiftController::class, 'close'])->name('shifts.close'); // Close Shift
+    Route::get('/shifts/{shift}/report', [RestaurantShiftController::class, 'report'])->name('shifts.report'); // Z-Report / X-Report
+    Route::get('/cash/transactions', [RestaurantNavigationController::class, 'placeholder'])->name('cash.transactions');
+    Route::get('/expenses', [RestaurantExpenseController::class, 'index'])->name('expenses'); // Expenses
+    Route::post('/expenses', [RestaurantExpenseController::class, 'store'])->name('expenses.store');
+    Route::delete('/expenses/{expense}', [RestaurantExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::get('/cash/reconciliation', [RestaurantNavigationController::class, 'placeholder'])->name('cash.reconciliation');
+
+    // 7. Customers
+    Route::get('/customers', [RestaurantNavigationController::class, 'placeholder'])->name('customers.index');
+    Route::get('/customers/history', [RestaurantNavigationController::class, 'placeholder'])->name('customers.history');
+
+    // 8. Reports
+    Route::get('/reports/sales', [RestaurantNavigationController::class, 'placeholder'])->name('reports.sales');
+    Route::get('/reports/products', [RestaurantNavigationController::class, 'placeholder'])->name('reports.products');
+    Route::get('/reports/inventory', [RestaurantNavigationController::class, 'placeholder'])->name('reports.inventory');
+    Route::get('/reports/wastage', [RestaurantNavigationController::class, 'placeholder'])->name('reports.wastage');
+    Route::get('/reports/purchasing', [RestaurantNavigationController::class, 'placeholder'])->name('reports.purchasing');
+    Route::get('/reports/cashier', [RestaurantNavigationController::class, 'placeholder'])->name('reports.cashier');
+    Route::get('/reports/shifts', [RestaurantNavigationController::class, 'placeholder'])->name('reports.shifts');
+    Route::get('/reports/profit-loss', [RestaurantNavigationController::class, 'placeholder'])->name('reports.profit_loss');
+
+    // 9. Approvals
+    Route::get('/approvals/discounts', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.discounts');
+    Route::get('/approvals/voids', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.voids');
+    Route::get('/approvals/refunds', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.refunds');
+    Route::get('/approvals/stock', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.stock');
+    Route::get('/approvals/expenses', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.expenses');
+    Route::get('/approvals/purchases', [RestaurantNavigationController::class, 'placeholder'])->name('approvals.purchases');
+
+    // 10. Audit
+    Route::get('/audit/activity', [RestaurantNavigationController::class, 'placeholder'])->name('audit.activity');
+    Route::get('/audit/sales', [RestaurantNavigationController::class, 'placeholder'])->name('audit.sales');
+    Route::get('/audit/cash', [RestaurantNavigationController::class, 'placeholder'])->name('audit.cash');
+    Route::get('/audit/inventory', [RestaurantNavigationController::class, 'placeholder'])->name('audit.inventory');
+    Route::get('/audit/approvals', [RestaurantNavigationController::class, 'placeholder'])->name('audit.approvals');
+
+    // 11. Settings
+    Route::get('/settings/restaurant', [RestaurantNavigationController::class, 'placeholder'])->name('settings.restaurant');
+    Route::get('/settings/products', [RestaurantNavigationController::class, 'placeholder'])->name('settings.products');
+    Route::get('/settings/categories', [RestaurantNavigationController::class, 'placeholder'])->name('settings.categories');
+    Route::get('/settings/payment-methods', [RestaurantNavigationController::class, 'placeholder'])->name('settings.payment_methods');
+    Route::get('/settings/tax', [RestaurantNavigationController::class, 'placeholder'])->name('settings.tax');
+    Route::get('/settings/users', [RestaurantNavigationController::class, 'placeholder'])->name('settings.users');
+    Route::get('/settings/system', [RestaurantNavigationController::class, 'placeholder'])->name('settings.system');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        return 'Dashboard';
+    })->name('dashboard')->middleware(EnsureActiveContext::class);
+
+    Route::get('/context/switch', [ContextController::class, 'showSwitcher'])->name('context.switcher');
+    Route::post('/context/switch', [ContextController::class, 'switchContext'])->name('context.switch');
+});

@@ -1,0 +1,52 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.env.*
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# Database files (sensitive data)
+/database/database.sqlite
+/database/*.sqlite
+
+# Test files (excluded per project policy)
+/tests/
+
+# Documentation files
+/docs/
+*.md
+
+# Temporary / scratch files
+fix_var.php
+update_po.php
+*.php.bak
+
+# Agents / AI config (private)
+/.agents/
+/.gemini/
+.ai/
+
+# Laravel cache & compiled
+/bootstrap/cache/*.php
