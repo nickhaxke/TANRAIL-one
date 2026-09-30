@@ -76,7 +76,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Fix MySQL "key too long" error for older MySQL / utf8mb4
+        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+
         Gate::policy(Customer::class, CustomerPolicy::class);
+
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(Item::class, ItemPolicy::class);
 

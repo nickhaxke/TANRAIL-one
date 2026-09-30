@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('processed_events', function (Blueprint $table) {
             $table->id();
-            $table->string('event_class');
-            $table->string('reference_id');
+            $table->string('event_class', 90);
+            $table->string('reference_id', 90);
             $table->timestamp('created_at')->useCurrent();
 
-            $table->unique(['event_class', 'reference_id']);
+            $table->unique(['event_class', 'reference_id'], 'processed_events_class_ref_unique');
+
         });
     }
 

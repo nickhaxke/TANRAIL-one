@@ -41,7 +41,17 @@ Thumbs.db
 # Temporary / scratch files
 fix_var.php
 update_po.php
-*.php.bak
+fix_*.php
+seed_*.php
+reset_*.php
+update_*.php
+inspect_*.php
+list_*.php
+find_*.php
+edit_blade.php
+test_pos.php
+fix.php
+fix2.php
 
 # Agents / AI config (private)
 /.agents/

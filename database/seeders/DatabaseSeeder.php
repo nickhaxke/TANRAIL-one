@@ -41,7 +41,21 @@ class DatabaseSeeder extends Seeder
         );
 
         if ($superAdminRole) {
-            $admin->assignRole($superAdminRole, Organization::class, $org->id);
+            $alreadyHasRole = $admin->roles()
+                ->wherePivot('role_id', $superAdminRole->id)
+                ->wherePivot('scope_type', Organization::class)
+                ->wherePivot('scope_id', $org->id)
+                ->exists();
+
+            if (! $alreadyHasRole) {
+                $admin->assignRole($superAdminRole, Organization::class, $org->id);
+            }
         }
+
+        // 3. Restaurant foundation data (BU, Branch, Locations, Units, Suppliers)
+        $this->call(RestaurantSeeder::class);
+
+        // 4. Menu items / inventory items
+        $this->call(TanrailItemsSeeder::class);
     }
 }

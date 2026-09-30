@@ -43,7 +43,9 @@ return new class extends Migration
             $table->longText('exception');
             $table->timestamp('failed_at')->useCurrent();
 
-            $table->index(['connection', 'queue', 'failed_at']);
+            // Composite index removed — causes "key too long" on MySQL with utf8mb4
+            // Individual columns are still queryable; add prefix-index if needed.
+
         });
     }
 
