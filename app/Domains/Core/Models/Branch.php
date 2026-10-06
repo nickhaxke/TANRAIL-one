@@ -2,6 +2,7 @@
 
 namespace App\Domains\Core\Models;
 
+use App\Domains\Modules\Cleaning\Models\CleaningSupervisorAssignment;
 use Database\Factories\BranchFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,6 +44,11 @@ class Branch extends Model
     public function departments()
     {
         return $this->hasMany(Department::class);
+    }
+
+    public function cleaningSupervisorAssignments()
+    {
+        return $this->hasMany(CleaningSupervisorAssignment::class, 'branch_id');
     }
 
     protected function casts(): array

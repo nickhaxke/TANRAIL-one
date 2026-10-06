@@ -7,6 +7,7 @@ use Database\Factories\InventoryLocationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InventoryLocation extends Model
 {
@@ -35,7 +36,7 @@ class InventoryLocation extends Model
         return InventoryLocationFactory::new();
     }
 
-    public function stockBalances(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stockBalances(): HasMany
     {
         return $this->hasMany(StockBalance::class);
     }

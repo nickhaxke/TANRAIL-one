@@ -121,6 +121,8 @@
                                 <option value="On-board Train Catering" {{ old('category', $businessUnit->category) == 'On-board Train Catering' ? 'selected' : '' }}>On-board Train Catering</option>
                                 <option value="Station Kiosks & Retail" {{ old('category', $businessUnit->category) == 'Station Kiosks & Retail' ? 'selected' : '' }}>Station Kiosks & Retail</option>
                                 <option value="Commercial Services & Facilities" {{ old('category', $businessUnit->category) == 'Commercial Services & Facilities' ? 'selected' : '' }}>Commercial Services & Facilities</option>
+                                <option value="Facilities Management" {{ old('category', $businessUnit->category) == 'Facilities Management' ? 'selected' : '' }}>Facilities Management</option>
+                                <option value="Cleaning Operations" {{ old('category', $businessUnit->category) == 'Cleaning Operations' ? 'selected' : '' }}>Cleaning Operations</option>
                                 <option value="Logistics & Supply Chain" {{ old('category', $businessUnit->category) == 'Logistics & Supply Chain' ? 'selected' : '' }}>Logistics & Supply Chain</option>
                             </select>
                         </div>

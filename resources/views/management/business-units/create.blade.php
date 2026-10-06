@@ -19,6 +19,8 @@
             'On-board Train Catering': { code: 'BU-CAT', costCenter: 'CC-4200-CAT' },
             'Station Kiosks & Retail': { code: 'BU-RETL', costCenter: 'CC-4300-RETL' },
             'Commercial Services & Facilities': { code: 'BU-COMM', costCenter: 'CC-4400-COMM' },
+            'Facilities Management': { code: 'BU-FAC', costCenter: 'CC-4600-FAC' },
+            'Cleaning Operations': { code: 'BU-CLN', costCenter: 'CC-4700-CLN' },
             'Logistics & Supply Chain': { code: 'BU-LOG', costCenter: 'CC-4500-LOG' }
         };
         if (presets[this.category]) {
@@ -98,6 +100,8 @@
                             <option value="On-board Train Catering">On-board Train Catering</option>
                             <option value="Station Kiosks & Retail">Station Kiosks & Retail</option>
                             <option value="Commercial Services & Facilities">Commercial Services & Facilities</option>
+                            <option value="Facilities Management">Facilities Management</option>
+                            <option value="Cleaning Operations">Cleaning Operations</option>
                             <option value="Logistics & Supply Chain">Logistics & Supply Chain</option>
                         </select>
                         <p class="mt-1 text-[11px] text-gray-500">Auto-suggests code presets.</p>

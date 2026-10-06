@@ -54,7 +54,7 @@ class PosController extends Controller
         if ($cateringBu) {
             $itemsQuery->where('business_unit_id', $cateringBu->id);
         }
-        
+
         $items = $itemsQuery->get()->map(function ($item) use ($stockBalances) {
             $inStock = $item->track_inventory ? (float) ($stockBalances[$item->id] ?? 0) : 9999;
 

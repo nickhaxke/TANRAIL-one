@@ -8,6 +8,7 @@ use App\Domains\Core\Models\InventoryLocation;
 use App\Domains\Core\Models\Item;
 use App\Domains\Core\Models\ItemCategory;
 use App\Domains\Core\Models\StockBalance;
+use App\Domains\Core\Models\Unit;
 use App\Domains\Core\Services\ContextManager;
 use App\Domains\Core\Services\InventoryService;
 use App\Http\Controllers\Controller;
@@ -61,7 +62,8 @@ class RestaurantMenuController extends Controller
         $businessUnit = $branch->businessUnit ?? BusinessUnit::first();
         $categories = ItemCategory::where('business_unit_id', $businessUnit->id)->orderBy('name')->get();
 
-        $units = \App\Domains\Core\Models\Unit::all();
+        $units = Unit::all();
+
         return view('restaurant.menu.index', compact('items', 'user', 'branch', 'stockBalances', 'search', 'categories', 'units'));
     }
 
@@ -118,7 +120,7 @@ class RestaurantMenuController extends Controller
     public function search(Request $request)
     {
         $query = $request->query('query');
-        if (!$query) {
+        if (! $query) {
             return response()->json([]);
         }
 
@@ -128,16 +130,16 @@ class RestaurantMenuController extends Controller
 
         $items = Item::withoutGlobalScopes()
             ->where('business_unit_id', $businessUnit->id)
-            ->where(function($q) use ($query) {
+            ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('sku', 'like', "%{$query}%");
+                    ->orWhere('sku', 'like', "%{$query}%");
             })
             ->limit(10)
             ->get(['id', 'name', 'sku', 'base_price', 'standard_cost', 'category_id', 'can_be_sold', 'can_be_purchased', 'track_inventory']);
 
         // Attach stock balances for context in UI
         $location = InventoryLocation::withoutGlobalScopes()->find($branch->default_sales_location_id);
-        
+
         if ($location) {
             $itemIds = $items->pluck('id')->toArray();
             $balances = StockBalance::withoutGlobalScopes()
@@ -145,8 +147,8 @@ class RestaurantMenuController extends Controller
                 ->whereIn('item_id', $itemIds)
                 ->pluck('quantity', 'item_id')
                 ->toArray();
-                
-            $items->each(function($item) use ($balances) {
+
+            $items->each(function ($item) use ($balances) {
                 $item->stock = $balances[$item->id] ?? 0;
             });
         }
@@ -159,7 +161,7 @@ class RestaurantMenuController extends Controller
         $request->validate([
             'existing_item_id' => 'nullable|exists:items,id',
             'name' => 'required|string|max:255',
-            'sku' => 'required|string|unique:items,sku,' . $request->input('existing_item_id'),
+            'sku' => 'required|string|unique:items,sku,'.$request->input('existing_item_id'),
             'description' => 'nullable|string',
             'base_price' => 'required|numeric|min:0',
             'standard_cost' => 'required|numeric|min:0',
@@ -186,6 +188,7 @@ class RestaurantMenuController extends Controller
                 'can_be_sold' => $request->has('can_be_sold'),
                 'can_be_purchased' => $request->has('can_be_purchased'),
             ]);
+
             return back()->with('success', 'Existing item successfully configured as product.');
         }
 
@@ -262,6 +265,11 @@ class RestaurantMenuController extends Controller
             if ($branch) {
                 return $branch;
             }
+        }
+
+        $buId = app(ContextManager::class)->getActiveBusinessUnitId();
+        if ($buId) {
+            return Branch::where('business_unit_id', $buId)->first() ?? Branch::first();
         }
 
         return Branch::where('facility_type', 'like', '%Restaurant%')

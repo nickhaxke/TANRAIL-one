@@ -53,6 +53,12 @@ class LoginController extends Controller
             return route('restaurant.dashboard');
         }
 
+        if (in_array('Cleaning Manager', $roleNames) ||
+            in_array('Store Keeper', $roleNames) ||
+            in_array('Station Supervisor', $roleNames)) {
+            return route('context.switcher'); // They need context switcher to set BU
+        }
+
         return route('management.dashboard');
     }
 

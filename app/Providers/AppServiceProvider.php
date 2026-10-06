@@ -23,6 +23,7 @@ use App\Domains\Core\Listeners\RecordSalesPaymentListener;
 use App\Domains\Core\Listeners\RecordSupplierPaymentListener;
 use App\Domains\Core\Listeners\RestoreInventoryListener;
 use App\Domains\Core\Models\Account;
+use App\Domains\Core\Models\BusinessUnit;
 use App\Domains\Core\Models\CreditNote;
 use App\Domains\Core\Models\Customer;
 use App\Domains\Core\Models\InventoryLocation;
@@ -52,6 +53,12 @@ use App\Domains\Core\Policies\StockMovementPolicy;
 use App\Domains\Core\Policies\StockTransferPolicy;
 use App\Domains\Core\Policies\SupplierInvoicePolicy;
 use App\Domains\Core\Policies\SupplierPolicy;
+use App\Domains\Core\Services\ContextManager;
+use App\Domains\Modules\Cleaning\Models\CleaningServiceTemplate;
+use App\Domains\Modules\Cleaning\Models\CleaningSupervisorAssignment;
+use App\Domains\Modules\Cleaning\Models\DailyControl;
+use App\Domains\Modules\Cleaning\Models\OperationalIssue;
+use App\Domains\Modules\Cleaning\Models\WorkActivity;
 use App\Domains\Modules\EventManagement\Models\EventBooking;
 use App\Domains\Modules\EventManagement\Policies\EventBookingPolicy;
 use App\Domains\Modules\Production\Events\ProductionCompleted;
@@ -60,8 +67,14 @@ use App\Domains\Modules\Production\Models\BillOfMaterials;
 use App\Domains\Modules\Production\Models\ProductionOrder;
 use App\Domains\Modules\Production\Policies\BillOfMaterialsPolicy;
 use App\Domains\Modules\Production\Policies\ProductionOrderPolicy;
+use App\Policies\Cleaning\CleaningServiceTemplatePolicy;
+use App\Policies\Cleaning\CleaningSupervisorAssignmentPolicy;
+use App\Policies\Cleaning\DailyControlPolicy;
+use App\Policies\Cleaning\OperationalIssuePolicy;
+use App\Policies\Cleaning\WorkActivityPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -77,7 +90,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Fix MySQL "key too long" error for older MySQL / utf8mb4
-        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+        Schema::defaultStringLength(191);
+
+        Gate::before(function ($user, $ability) {
+            if (str_starts_with($ability, 'cleaning.')) {
+                $contextManager = app(ContextManager::class);
+                $buId = $contextManager->getActiveBusinessUnitId();
+                if ($buId && method_exists($user, 'hasPermissionTo') && $user->hasPermissionTo($ability, BusinessUnit::class, $buId)) {
+                    return true;
+                }
+            }
+        });
 
         Gate::policy(Customer::class, CustomerPolicy::class);
 
@@ -125,5 +148,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Phase 5.4 GL Integration
         Event::listen(ProductionCompleted::class, PostProductionCompletedToGlListener::class);
+
+        // Cleaning Operations
+        Gate::policy(DailyControl::class, DailyControlPolicy::class);
+        Gate::policy(WorkActivity::class, WorkActivityPolicy::class);
+        Gate::policy(OperationalIssue::class, OperationalIssuePolicy::class);
+        Gate::policy(CleaningSupervisorAssignment::class, CleaningSupervisorAssignmentPolicy::class);
+        Gate::policy(CleaningServiceTemplate::class, CleaningServiceTemplatePolicy::class);
     }
 }

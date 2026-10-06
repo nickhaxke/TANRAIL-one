@@ -6,7 +6,7 @@
     <div class="bg-white border-b-2 border-gray-900 pb-5 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
             <div class="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-1">Corporate Procurement Hub</div>
-            <h1 class="text-2xl font-black text-gray-900 tracking-tight uppercase">Procurement & Sourcing</h1>
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight uppercase">Procurement Management</h1>
             <p class="text-gray-500 text-xs font-semibold mt-1 uppercase tracking-wide">Enterprise expenditure, purchase orders, and supplier commitments.</p>
         </div>
         <div class="flex gap-x-3">

@@ -47,6 +47,17 @@ trait HasContextualRoles
             if ($bu && $this->roles()->wherePivot('scope_type', Organization::class)->wherePivot('scope_id', $bu->organization_id)->exists()) {
                 return true;
             }
+
+            // Check if user is assigned to any branch in this BU
+            $hasBranchAccess = $this->roles()
+                ->wherePivot('scope_type', Branch::class)
+                ->whereIn('role_user.scope_id', function ($query) use ($scopeId) {
+                    $query->select('id')->from('branches')->where('business_unit_id', $scopeId);
+                })->exists();
+
+            if ($hasBranchAccess) {
+                return true;
+            }
         } elseif ($scopeType === Branch::class) {
             $branch = Branch::with('businessUnit')->find($scopeId);
             if ($branch) {
@@ -69,6 +80,18 @@ trait HasContextualRoles
             $bu = BusinessUnit::find($scopeId);
             if ($bu) {
                 $scopesToCheck[] = ['type' => Organization::class, 'id' => $bu->organization_id];
+            }
+
+            $branchRoleIds = $this->roles()
+                ->wherePivot('scope_type', Branch::class)
+                ->whereIn('role_user.scope_id', function ($query) use ($scopeId) {
+                    $query->select('id')->from('branches')->where('business_unit_id', $scopeId);
+                })
+                ->pluck('role_user.scope_id')
+                ->unique();
+
+            foreach ($branchRoleIds as $bId) {
+                $scopesToCheck[] = ['type' => Branch::class, 'id' => $bId];
             }
         } elseif ($scopeType === Branch::class) {
             $branch = Branch::with('businessUnit')->find($scopeId);

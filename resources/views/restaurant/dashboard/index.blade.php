@@ -43,7 +43,7 @@
         <div class="bg-white border-2 border-gray-200 p-5 relative">
             <div class="absolute top-0 left-0 w-1 h-full bg-red-600"></div>
             <div class="flex items-center justify-between mb-2">
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-500">COGS</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-500">Cost of Goods Sold (COGS)</div>
                 <div class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 border border-red-200">{{ $foodCostPercent }}% FOOD COST</div>
             </div>
             <div class="text-3xl font-black text-gray-900">
@@ -56,7 +56,7 @@
         <div class="bg-white border-2 border-gray-200 p-5 relative">
             <div class="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
             <div class="flex items-center justify-between mb-2">
-                <div class="text-xs font-bold uppercase tracking-wider text-gray-500">Gross Profit (Faida)</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-500">Gross Profit (Faida Ghafi)</div>
                 <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 border border-blue-200">{{ $grossMarginPercent }}% MARGIN</div>
             </div>
             <div class="text-3xl font-black text-gray-900">
@@ -79,7 +79,7 @@
         <div class="bg-white border-2 border-gray-200 p-5 flex flex-col justify-between">
             <div class="flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Net Profit</div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Net Operating Profit</div>
                     <div class="text-xl font-bold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">TZS {{ number_format($netProfit, 2) }}</div>
                 </div>
                 <div class="text-xs font-bold {{ $netProfit >= 0 ? 'text-green-600 bg-green-50 border-green-200' : 'text-red-600 bg-red-50 border-red-200' }} px-2 py-0.5 border">

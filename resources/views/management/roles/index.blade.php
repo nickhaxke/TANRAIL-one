@@ -86,19 +86,56 @@
                     </span>
                 </div>
 
-                <!-- Assigned Permissions Badges -->
-                <div class="pt-4 space-y-2">
+                <!-- Grouped Permissions Badges -->
+                <div class="pt-4 space-y-3">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Assigned Permissions</span>
-                    <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
-                        @forelse($role->permissions as $permission)
-                            <span class="inline-flex items-center gap-1 rounded-lg bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 border border-slate-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                                {{ $permission->name }}
-                            </span>
-                        @empty
-                            <span class="text-xs text-slate-400 italic">No permissions assigned to this role yet.</span>
-                        @endforelse
-                    </div>
+
+                    @php
+                        $rolePermIds = $role->permissions->pluck('id')->toArray();
+                        $hasAnyPerm = false;
+                    @endphp
+
+                    @foreach($moduleGroups as $group)
+                        @php
+                            $groupPerms = $group['permissions']->filter(fn($p) => in_array($p->id, $rolePermIds));
+                        @endphp
+                        @if($groupPerms->isNotEmpty())
+                            @php $hasAnyPerm = true; @endphp
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-widest mb-1 block
+                                    @if($group['color'] === 'blue') text-blue-500
+                                    @elseif($group['color'] === 'purple') text-purple-500
+                                    @elseif($group['color'] === 'teal') text-teal-500
+                                    @elseif($group['color'] === 'orange') text-orange-500
+                                    @else text-slate-400 @endif
+                                ">{{ $group['label'] }}</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    @foreach($groupPerms as $permission)
+                                        <span class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium border
+                                            @if($group['color'] === 'blue') bg-blue-50 text-blue-700 border-blue-200
+                                            @elseif($group['color'] === 'purple') bg-purple-50 text-purple-700 border-purple-200
+                                            @elseif($group['color'] === 'teal') bg-teal-50 text-teal-700 border-teal-200
+                                            @elseif($group['color'] === 'orange') bg-orange-50 text-orange-700 border-orange-200
+                                            @else bg-slate-50 text-slate-700 border-slate-200 @endif
+                                        ">
+                                            <span class="w-1.5 h-1.5 rounded-full
+                                                @if($group['color'] === 'blue') bg-blue-500
+                                                @elseif($group['color'] === 'purple') bg-purple-500
+                                                @elseif($group['color'] === 'teal') bg-teal-500
+                                                @elseif($group['color'] === 'orange') bg-orange-500
+                                                @else bg-slate-500 @endif
+                                            "></span>
+                                            {{ str_replace($group['key'] . '.', '', $permission->name) }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    @if(! $hasAnyPerm)
+                        <span class="text-xs text-slate-400 italic">No permissions assigned to this role yet.</span>
+                    @endif
                 </div>
             </div>
 

@@ -1,15 +1,17 @@
 <?php
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-use App\Domains\Core\Models\PurchaseOrder;
-use App\Domains\Core\Models\PurchaseOrderLine;
+use App\Domains\Core\Models\BusinessUnit;
 use App\Domains\Core\Models\Item;
 use App\Domains\Core\Models\ItemCategory;
+use App\Domains\Core\Models\PurchaseOrder;
+use App\Domains\Core\Models\PurchaseOrderLine;
 use App\Domains\Core\Models\Unit;
-use App\Domains\Core\Models\BusinessUnit;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Str;
 
 $bu = BusinessUnit::find(2); // Restaurant
@@ -42,17 +44,17 @@ $itemsToCreate = [
     ['name' => 'Kuku Mzima', 'cat' => $rawCat->id, 'unit' => $unitPc->id, 'price' => 8000, 'qty' => 30],
     ['name' => 'Nyama ya Ng\'ombe', 'cat' => $rawCat->id, 'unit' => $unitKg->id, 'price' => 9000, 'qty' => 20],
     ['name' => 'Kitunguu Maji', 'cat' => $rawCat->id, 'unit' => $unitKg->id, 'price' => 1500, 'qty' => 15],
-    ['name' => 'Nyanya', 'cat' => $rawCat->id, 'unit' => $unitKg->id, 'price' => 2500, 'qty' => 20]
+    ['name' => 'Nyanya', 'cat' => $rawCat->id, 'unit' => $unitKg->id, 'price' => 2500, 'qty' => 20],
 ];
 
-$po = new PurchaseOrder();
+$po = new PurchaseOrder;
 $po->business_unit_id = $bu->id;
 $po->branch_id = $branchId;
 $po->supplier_id = $supplierId;
 $po->status = 'draft';
 $po->created_by = $userId;
 $po->save();
-$po->reference_number = 'REQ-REST-' . str_pad($po->id, 4, '0', STR_PAD_LEFT);
+$po->reference_number = 'REQ-REST-'.str_pad($po->id, 4, '0', STR_PAD_LEFT);
 
 $total = 0;
 
@@ -60,7 +62,7 @@ foreach ($itemsToCreate as $data) {
     // Check if item exists by name in this BU, if not create it
     $item = Item::firstOrCreate([
         'name' => $data['name'],
-        'business_unit_id' => $bu->id
+        'business_unit_id' => $bu->id,
     ], [
         'sku' => 'ITM-'.strtoupper(Str::random(6)),
         'type' => 'physical',
@@ -69,10 +71,10 @@ foreach ($itemsToCreate as $data) {
         'track_inventory' => true,
         'base_price' => $data['price'] * 1.5, // Fake selling price
         'standard_cost' => $data['price'],
-        'status' => 1
+        'status' => 1,
     ]);
 
-    $poLine = new PurchaseOrderLine();
+    $poLine = new PurchaseOrderLine;
     $poLine->purchase_order_id = $po->id;
     $poLine->item_id = $item->id;
     $poLine->quantity = $data['qty'];
@@ -91,4 +93,4 @@ $po->tax_total = 0;
 $po->total = $total;
 $po->save();
 
-echo "Successfully created Draft PO #{$po->reference_number} with " . count($itemsToCreate) . " items!\n";
+echo "Successfully created Draft PO #{$po->reference_number} with ".count($itemsToCreate)." items!\n";

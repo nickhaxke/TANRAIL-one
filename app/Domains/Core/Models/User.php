@@ -4,6 +4,7 @@ namespace App\Domains\Core\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Domains\Core\Traits\HasContextualRoles;
+use App\Domains\Modules\Cleaning\Models\CleaningSupervisorAssignment;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -29,5 +30,10 @@ class User extends Authenticatable
     protected static function newFactory()
     {
         return UserFactory::new();
+    }
+
+    public function cleaningSupervisorAssignments()
+    {
+        return $this->hasMany(CleaningSupervisorAssignment::class, 'supervisor_id');
     }
 }

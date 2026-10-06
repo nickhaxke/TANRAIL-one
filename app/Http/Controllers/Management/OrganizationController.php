@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Management;
 
 use App\Domains\Core\Models\Branch;
-use App\Domains\Core\Models\BusinessUnit;
 use App\Domains\Core\Models\Organization;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

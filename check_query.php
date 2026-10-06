@@ -1,10 +1,14 @@
 <?php
+
+use App\Domains\Core\Models\Item;
+use Illuminate\Contracts\Console\Kernel;
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-$items = \App\Domains\Core\Models\Item::withoutGlobalScopes()
+$items = Item::withoutGlobalScopes()
     ->where('business_unit_id', 2)
     ->where('status', true)
     ->orderBy('category_id')
@@ -17,12 +21,12 @@ foreach ($items as $item) {
         $found = true;
     }
 }
-echo "Found in query? " . ($found ? "Yes" : "No") . "\n";
+echo 'Found in query? '.($found ? 'Yes' : 'No')."\n";
 
-$sql = \App\Domains\Core\Models\Item::withoutGlobalScopes()
+$sql = Item::withoutGlobalScopes()
     ->where('business_unit_id', 2)
     ->where('status', true)
     ->orderBy('category_id')
     ->orderBy('name')
     ->toSql();
-echo "SQL: " . $sql . "\n";
+echo 'SQL: '.$sql."\n";

@@ -84,7 +84,7 @@ class RestaurantLocationController extends Controller
 
         return redirect()->back()->with('success', 'Location updated successfully.');
     }
-    
+
     public function setDefaultSalesLocation(Request $request, InventoryLocation $location): RedirectResponse
     {
         $user = Auth::user();
@@ -93,7 +93,7 @@ class RestaurantLocationController extends Controller
         if ($location->branch_id !== $branch->id) {
             return redirect()->back()->with('error', 'Unauthorized access to this location.');
         }
-        
+
         if ($location->status !== 'active') {
             return redirect()->back()->with('error', 'Cannot set an inactive location as default.');
         }
@@ -125,6 +125,11 @@ class RestaurantLocationController extends Controller
             if ($branch) {
                 return $branch;
             }
+        }
+
+        $buId = app(ContextManager::class)->getActiveBusinessUnitId();
+        if ($buId) {
+            return Branch::where('business_unit_id', $buId)->first() ?? Branch::first();
         }
 
         return Branch::where('facility_type', 'like', '%Restaurant%')

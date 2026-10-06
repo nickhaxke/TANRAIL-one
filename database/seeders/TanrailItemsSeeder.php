@@ -30,7 +30,7 @@ class TanrailItemsSeeder extends Seeder
         $categories = [
             ['name' => 'Raw Ingredients',    'description' => 'Uncooked food and supplies'],
             ['name' => 'Beverages',           'description' => 'Soft drinks, water, and juices'],
-            ['name' => 'Equipment & Utensils','description' => 'Trays, jugs, plates, spoons'],
+            ['name' => 'Equipment & Utensils', 'description' => 'Trays, jugs, plates, spoons'],
             ['name' => 'Packaging',           'description' => 'Takeaway boxes, cups, napkins'],
         ];
 
@@ -54,15 +54,15 @@ class TanrailItemsSeeder extends Seeder
             // Beverages
             ['sku' => 'BEV-H2O-500',   'name' => 'Kilimanjaro Water (500ml - Box of 24)',  'cat' => 'Beverages',           'cost' => 9500],
             ['sku' => 'BEV-SODA-COKE', 'name' => 'Coca-Cola (500ml - Box of 12)',           'cat' => 'Beverages',           'cost' => 11000],
-            ['sku' => 'BEV-JUICE-AZAM','name' => 'Azam Mango Juice (1L - Box of 12)',       'cat' => 'Beverages',           'cost' => 24000],
+            ['sku' => 'BEV-JUICE-AZAM', 'name' => 'Azam Mango Juice (1L - Box of 12)',       'cat' => 'Beverages',           'cost' => 24000],
             // Equipment
-            ['sku' => 'EQP-TRAY-01',   'name' => 'Serving Trays (Stainless Steel)',         'cat' => 'Equipment & Utensils','cost' => 15000],
-            ['sku' => 'EQP-JUG-01',    'name' => 'Water Jugs (2 Liters)',                   'cat' => 'Equipment & Utensils','cost' => 8500],
-            ['sku' => 'EQP-PLATE-01',  'name' => 'Ceramic Dining Plates',                   'cat' => 'Equipment & Utensils','cost' => 5000],
-            ['sku' => 'EQP-FORK-01',   'name' => 'Dining Forks (Dozen)',                    'cat' => 'Equipment & Utensils','cost' => 12000],
+            ['sku' => 'EQP-TRAY-01',   'name' => 'Serving Trays (Stainless Steel)',         'cat' => 'Equipment & Utensils', 'cost' => 15000],
+            ['sku' => 'EQP-JUG-01',    'name' => 'Water Jugs (2 Liters)',                   'cat' => 'Equipment & Utensils', 'cost' => 8500],
+            ['sku' => 'EQP-PLATE-01',  'name' => 'Ceramic Dining Plates',                   'cat' => 'Equipment & Utensils', 'cost' => 5000],
+            ['sku' => 'EQP-FORK-01',   'name' => 'Dining Forks (Dozen)',                    'cat' => 'Equipment & Utensils', 'cost' => 12000],
             // Packaging
             ['sku' => 'PKG-BOX-01',    'name' => 'Takeaway Food Boxes (Pack of 100)',       'cat' => 'Packaging',           'cost' => 35000],
-            ['sku' => 'PKG-CUP-01',    'name' => 'Paper Coffee Cups with Lids (Pack of 50)','cat' => 'Packaging',          'cost' => 15000],
+            ['sku' => 'PKG-CUP-01',    'name' => 'Paper Coffee Cups with Lids (Pack of 50)', 'cat' => 'Packaging',          'cost' => 15000],
             ['sku' => 'PKG-NAPKIN-01', 'name' => 'Table Napkins (Bundle of 500)',            'cat' => 'Packaging',           'cost' => 10000],
         ];
 
@@ -70,20 +70,20 @@ class TanrailItemsSeeder extends Seeder
             Item::updateOrCreate(
                 ['sku' => $it['sku'], 'business_unit_id' => $bu->id],
                 [
-                    'name'           => $it['name'],
-                    'type'           => 'physical',
-                    'category_id'    => $catIds[$it['cat']],
-                    'track_inventory'=> true,
-                    'base_price'     => $it['cost'] * 1.5,
-                    'standard_cost'  => $it['cost'],
-                    'status'         => true,
-                    'unit_id'        => $unit->id,
+                    'name' => $it['name'],
+                    'type' => 'physical',
+                    'category_id' => $catIds[$it['cat']],
+                    'track_inventory' => true,
+                    'base_price' => $it['cost'] * 1.5,
+                    'standard_cost' => $it['cost'],
+                    'status' => true,
+                    'unit_id' => $unit->id,
                     'can_be_purchased' => true,
-                    'can_be_sold'    => false,
+                    'can_be_sold' => false,
                 ]
             );
         }
 
-        $this->command->info('✅ TANRAIL items seeded successfully (' . count($items) . ' items).');
+        $this->command->info('✅ TANRAIL items seeded successfully ('.count($items).' items).');
     }
 }

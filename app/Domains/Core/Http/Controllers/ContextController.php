@@ -2,6 +2,7 @@
 
 namespace App\Domains\Core\Http\Controllers;
 
+use App\Domains\Core\Models\Branch;
 use App\Domains\Core\Models\BusinessUnit;
 use App\Domains\Core\Models\Organization;
 use App\Domains\Core\Services\ContextManager;
@@ -25,9 +26,18 @@ class ContextController extends Controller
             ->pluck('scope_id')
             ->toArray();
 
+        $branchBuIds = Branch::whereIn('id', function ($query) use ($user) {
+            $query->select('scope_id')
+                ->from('role_user')
+                ->where('user_id', $user->id)
+                ->where('scope_type', Branch::class);
+        })->pluck('business_unit_id')->toArray();
+
+        $allowedBuIds = array_unique(array_merge($directBuIds, $branchBuIds));
+
         $businessUnits = BusinessUnit::where('status', true)
-            ->where(function ($query) use ($directBuIds, $orgIds) {
-                $query->whereIn('id', $directBuIds)
+            ->where(function ($query) use ($allowedBuIds, $orgIds) {
+                $query->whereIn('id', $allowedBuIds)
                     ->orWhereIn('organization_id', $orgIds);
             })
             ->get();

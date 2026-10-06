@@ -1,7 +1,11 @@
 <?php
+
+use App\Domains\Core\Models\PurchaseOrder;
+use Illuminate\Contracts\Console\Kernel;
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
-$po = \App\Domains\Core\Models\PurchaseOrder::latest()->first();
+$po = PurchaseOrder::latest()->first();
 print_r($po->toArray());

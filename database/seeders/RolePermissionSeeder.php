@@ -43,6 +43,16 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'pos.sell', 'description' => 'Process Customer Orders and Receive Payments'],
             ['name' => 'kitchen.view', 'description' => 'Access Station Kitchen Display System (KDS)'],
             ['name' => 'restaurant.manage', 'description' => 'Manage Restaurant Menu, Station Shifts, and Daily Cash'],
+
+            // Cleaning Operations & Governance
+            ['name' => 'cleaning.dashboard.view', 'description' => 'View Cleaning Module Operational Dashboard'],
+            ['name' => 'cleaning.operations.manage', 'description' => 'Conduct Daily Control, Workforce Check, Activities, and Issues at Assigned Station'],
+            ['name' => 'cleaning.operations.monitor', 'description' => 'Monitor All Branch Daily Operations and Station Supervisors'],
+            ['name' => 'cleaning.workers.manage', 'description' => 'Create, Edit, and Assign Cleaning Workers to Stations and Supervisors'],
+            ['name' => 'cleaning.workers.view', 'description' => 'View Assigned Cleaning Workers and Station Workforce'],
+            ['name' => 'cleaning.store.view', 'description' => 'View Central Cleaning Store Balances and Movements'],
+            ['name' => 'cleaning.store.receive', 'description' => 'Receive Stock into Central Cleaning Store'],
+            ['name' => 'cleaning.store.issue', 'description' => 'Issue Stock from Central Cleaning Store'],
         ];
 
         $createdPermissions = [];
@@ -85,6 +95,9 @@ class RolePermissionSeeder extends Seeder
             $createdPermissions['users.view']->id,
             $createdPermissions['pos.access']->id,
             $createdPermissions['restaurant.manage']->id,
+            $createdPermissions['cleaning.dashboard.view']->id,
+            $createdPermissions['cleaning.operations.manage']->id,
+            $createdPermissions['cleaning.workers.view']->id,
         ];
         $stationSupervisor->permissions()->sync($stationSupervisorPerms);
 
@@ -143,5 +156,33 @@ class RolePermissionSeeder extends Seeder
             $createdPermissions['pos.access']->id,
             $createdPermissions['pos.sell']->id,
         ]);
+
+        // 9. Cleaning Manager
+        $cleaningManager = Role::firstOrCreate(
+            ['name' => 'Cleaning Manager'],
+            ['description' => 'Executive control over Cleaning Business Unit, workers, and operations']
+        );
+        $cleaningManager->permissions()->sync([
+            $createdPermissions['cleaning.dashboard.view']->id,
+            $createdPermissions['cleaning.operations.monitor']->id,
+            $createdPermissions['cleaning.workers.manage']->id,
+            $createdPermissions['cleaning.workers.view']->id,
+            $createdPermissions['cleaning.store.view']->id,
+            $createdPermissions['users.view']->id,
+            $createdPermissions['branches.view']->id,
+        ]);
+
+        // 10. Store Keeper
+        $storeKeeper = Role::firstOrCreate(
+            ['name' => 'Store Keeper'],
+            ['description' => 'Custodian of Central Cleaning Store and inventory fulfillment']
+        );
+        $storeKeeper->permissions()->sync([
+            $createdPermissions['cleaning.dashboard.view']->id,
+            $createdPermissions['cleaning.store.view']->id,
+            $createdPermissions['cleaning.store.receive']->id,
+            $createdPermissions['cleaning.store.issue']->id,
+        ]);
+
     }
 }

@@ -1,8 +1,12 @@
 <?php
+
+use App\Domains\Core\Models\Item;
+use Illuminate\Contracts\Console\Kernel;
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-$item = \App\Domains\Core\Models\Item::withoutGlobalScopes()->where('name', 'like', '%afya%')->first();
-echo "deleted_at: " . $item->deleted_at . "\n";
+$item = Item::withoutGlobalScopes()->where('name', 'like', '%afya%')->first();
+echo 'deleted_at: '.$item->deleted_at."\n";

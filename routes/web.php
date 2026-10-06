@@ -2,7 +2,17 @@
 
 use App\Domains\Core\Http\Controllers\ContextController;
 use App\Domains\Core\Http\Middleware\EnsureActiveContext;
+use App\Domains\Core\Models\BusinessUnit;
+use App\Domains\Core\Services\ContextManager;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Cleaning\CleaningCoordinatorController;
+use App\Http\Controllers\Cleaning\CleaningDailyControlController;
+use App\Http\Controllers\Cleaning\CleaningDashboardController;
+use App\Http\Controllers\Cleaning\CleaningServiceTemplateController;
+use App\Http\Controllers\Cleaning\CleaningStoreController;
+use App\Http\Controllers\Cleaning\CleaningSupervisorAssignmentController;
+use App\Http\Controllers\Cleaning\CleaningTimesheetController;
+use App\Http\Controllers\Cleaning\CleaningWorkerController;
 use App\Http\Controllers\Management\ApprovalController;
 use App\Http\Controllers\Management\AuditController;
 use App\Http\Controllers\Management\BranchController;
@@ -28,8 +38,10 @@ use App\Http\Controllers\Restaurant\PosController;
 use App\Http\Controllers\Restaurant\RestaurantCategoryController;
 use App\Http\Controllers\Restaurant\RestaurantDashboardController;
 use App\Http\Controllers\Restaurant\RestaurantExpenseController;
+use App\Http\Controllers\Restaurant\RestaurantLocationController;
 use App\Http\Controllers\Restaurant\RestaurantMenuController;
 use App\Http\Controllers\Restaurant\RestaurantNavigationController;
+use App\Http\Controllers\Restaurant\RestaurantPurchasingController;
 use App\Http\Controllers\Restaurant\RestaurantShiftController;
 use App\Http\Controllers\Restaurant\RestaurantStoreController;
 use Illuminate\Support\Facades\Route;
@@ -158,27 +170,26 @@ Route::middleware('auth')->prefix('restaurant')->name('restaurant.')->group(func
     Route::get('/store/adjustment', [RestaurantNavigationController::class, 'placeholder'])->name('store.adjustment');
     Route::get('/store/count', [RestaurantNavigationController::class, 'placeholder'])->name('store.count');
     Route::get('/store/movement', [RestaurantNavigationController::class, 'placeholder'])->name('store.movement');
-    
-    // 4.1 Store Locations
-    Route::get('/locations', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'index'])->name('locations.index');
-    Route::post('/locations', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'store'])->name('locations.store');
-    Route::put('/locations/{location}', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'update'])->name('locations.update');
-    Route::post('/locations/{location}/default', [\App\Http\Controllers\Restaurant\RestaurantLocationController::class, 'setDefaultSalesLocation'])->name('locations.default');
 
+    // 4.1 Store Locations
+    Route::get('/locations', [RestaurantLocationController::class, 'index'])->name('locations.index');
+    Route::post('/locations', [RestaurantLocationController::class, 'store'])->name('locations.store');
+    Route::put('/locations/{location}', [RestaurantLocationController::class, 'update'])->name('locations.update');
+    Route::post('/locations/{location}/default', [RestaurantLocationController::class, 'setDefaultSalesLocation'])->name('locations.default');
 
     // 5. Purchasing
-    Route::get('/purchasing/suppliers', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'suppliers'])->name('purchasing.suppliers');
-    Route::post('/purchasing/suppliers', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'storeSupplier'])->name('purchasing.suppliers.store');
-    
-    Route::get('/purchasing/requests', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'index'])->name('purchasing.requests');
-    Route::get('/purchasing/requests/create', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'createRequest'])->name('purchasing.requests.create');
-    Route::get('/purchasing/requests/{id}/edit', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'editRequest'])->name('purchasing.requests.edit');
-    Route::put('/purchasing/requests/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'updateRequest'])->name('purchasing.requests.update');
-    Route::post('/purchasing/requests', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'storeRequest'])->name('purchasing.store-request');
-    Route::post('/purchasing/submit-draft/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'submitDraft'])->name('purchasing.submit-draft');
-    Route::post('/purchasing/receive/{id}', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'receive'])->name('purchasing.receive');
-    
-    Route::get('/purchasing/orders', [\App\Http\Controllers\Restaurant\RestaurantPurchasingController::class, 'orders'])->name('purchasing.orders');
+    Route::get('/purchasing/suppliers', [RestaurantPurchasingController::class, 'suppliers'])->name('purchasing.suppliers');
+    Route::post('/purchasing/suppliers', [RestaurantPurchasingController::class, 'storeSupplier'])->name('purchasing.suppliers.store');
+
+    Route::get('/purchasing/requests', [RestaurantPurchasingController::class, 'index'])->name('purchasing.requests');
+    Route::get('/purchasing/requests/create', [RestaurantPurchasingController::class, 'createRequest'])->name('purchasing.requests.create');
+    Route::get('/purchasing/requests/{id}/edit', [RestaurantPurchasingController::class, 'editRequest'])->name('purchasing.requests.edit');
+    Route::put('/purchasing/requests/{id}', [RestaurantPurchasingController::class, 'updateRequest'])->name('purchasing.requests.update');
+    Route::post('/purchasing/requests', [RestaurantPurchasingController::class, 'storeRequest'])->name('purchasing.store-request');
+    Route::post('/purchasing/submit-draft/{id}', [RestaurantPurchasingController::class, 'submitDraft'])->name('purchasing.submit-draft');
+    Route::post('/purchasing/receive/{id}', [RestaurantPurchasingController::class, 'receive'])->name('purchasing.receive');
+
+    Route::get('/purchasing/orders', [RestaurantPurchasingController::class, 'orders'])->name('purchasing.orders');
     Route::get('/purchasing/received', [RestaurantNavigationController::class, 'placeholder'])->name('purchasing.received');
 
     // 6. Cash & Shifts
@@ -231,9 +242,65 @@ Route::middleware('auth')->prefix('restaurant')->name('restaurant.')->group(func
     Route::get('/settings/system', [RestaurantNavigationController::class, 'placeholder'])->name('settings.system');
 });
 
+Route::middleware(['auth', EnsureActiveContext::class])->prefix('cleaning')->name('cleaning.')->group(function () {
+    Route::get('/dashboard', [CleaningDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/workers/{worker}/assign', [CleaningWorkerController::class, 'assign'])->name('workers.assign');
+    Route::resource('workers', CleaningWorkerController::class);
+
+    Route::get('/timesheets', [CleaningTimesheetController::class, 'index'])->name('timesheets.index');
+
+    Route::get('/daily-control', [CleaningDailyControlController::class, 'index'])->name('daily-control.index')->middleware('supervisor');
+    Route::get('/daily-control/history', [CleaningDailyControlController::class, 'history'])->name('daily-control.history')->middleware('supervisor');
+    Route::post('/daily-control', [CleaningDailyControlController::class, 'store'])->name('daily-control.store')->middleware('supervisor');
+    Route::post('/daily-control/{dailyControl}/workforce', [CleaningDailyControlController::class, 'updateWorkforceCheck'])->name('daily-control.workforce')->middleware('supervisor');
+    Route::post('/daily-control/{dailyControl}/workforce/{workerAttendance}/checkout', [CleaningDailyControlController::class, 'checkoutWorker'])->name('daily-control.workforce.checkout')->middleware('supervisor');
+    Route::post('/daily-control/{dailyControl}/workforce/checkout-all', [CleaningDailyControlController::class, 'bulkCheckoutWorkers'])->name('daily-control.workforce.checkout-all')->middleware('supervisor');
+
+    // Work Activities & Issues & Submission
+    Route::post('/daily-control/{dailyControl}/activities', [CleaningDailyControlController::class, 'storeActivity'])->name('daily-control.activities.store')->middleware('supervisor');
+    Route::patch('/daily-control/activities/{workActivity}/status', [CleaningDailyControlController::class, 'updateActivityStatus'])->name('daily-control.activities.status')->middleware('supervisor');
+    Route::put('/daily-control/activities/{workActivity}/items', [CleaningDailyControlController::class, 'updateActivityItems'])->name('daily-control.activities.items.update')->middleware('supervisor');
+    Route::patch('/daily-control/activities/{workActivity}/verification', [CleaningDailyControlController::class, 'updateActivityVerification'])->name('daily-control.activities.verification')->middleware('supervisor');
+    Route::post('/daily-control/{dailyControl}/issues', [CleaningDailyControlController::class, 'storeIssue'])->name('daily-control.issues.store')->middleware('supervisor');
+    Route::patch('/daily-control/issues/{operationalIssue}/resolve', [CleaningDailyControlController::class, 'resolveIssue'])->name('daily-control.issues.resolve')->middleware('supervisor');
+    Route::post('/daily-control/{dailyControl}/submit', [CleaningDailyControlController::class, 'submit'])->name('daily-control.submit')->middleware('supervisor');
+
+    // Operations & Supervisor Monitoring (Cleaning Manager)
+    Route::middleware('coordinator')->group(function () {
+        Route::get('/operations', [CleaningCoordinatorController::class, 'operations'])->name('coordinator.operations');
+        Route::get('/supervisors', [CleaningCoordinatorController::class, 'supervisors'])->name('coordinator.supervisors');
+        Route::get('/reports', [CleaningCoordinatorController::class, 'reports'])->name('coordinator.reports');
+
+        Route::post('/assignments', [CleaningSupervisorAssignmentController::class, 'store'])->name('assignments.store');
+        Route::patch('/assignments/{assignment}/end', [CleaningSupervisorAssignmentController::class, 'end'])->name('assignments.end');
+
+        // Service Templates
+        Route::post('/templates', [CleaningServiceTemplateController::class, 'store'])->name('templates.store');
+        Route::put('/templates/{template}', [CleaningServiceTemplateController::class, 'update'])->name('templates.update');
+    });
+
+    // Central Cleaning Store (Store Keeper & Cleaning Manager)
+    Route::prefix('store')->name('store.')->group(function () {
+        Route::get('/', [CleaningStoreController::class, 'index'])->name('index');
+        Route::get('/receive', [CleaningStoreController::class, 'receiveForm'])->name('receive');
+        Route::post('/receive', [CleaningStoreController::class, 'receive'])->name('receive.post');
+        Route::get('/issue', [CleaningStoreController::class, 'issueForm'])->name('issue');
+        Route::post('/issue', [CleaningStoreController::class, 'issue'])->name('issue.post');
+        Route::get('/movements', [CleaningStoreController::class, 'movements'])->name('movements');
+    });
+});
+
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return 'Dashboard';
+    Route::get('/dashboard', function (ContextManager $contextManager) {
+        $bu = BusinessUnit::find($contextManager->getActiveBusinessUnitId());
+        if ($bu && in_array($bu->category, ['Cleaning Operations', 'Facilities Management'])) {
+            return redirect()->route('cleaning.dashboard');
+        }
+        if ($bu && in_array($bu->category, ['Restaurant & Food Services', 'On-board Train Catering'])) {
+            return redirect()->route('restaurant.dashboard');
+        }
+
+        return redirect()->route('management.dashboard');
     })->name('dashboard')->middleware(EnsureActiveContext::class);
 
     Route::get('/context/switch', [ContextController::class, 'showSwitcher'])->name('context.switcher');

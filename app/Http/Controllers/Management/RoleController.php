@@ -6,21 +6,41 @@ use App\Domains\Core\Models\Permission;
 use App\Domains\Core\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class RoleController extends Controller
 {
+    /**
+     * Permission module display metadata.
+     *
+     * @var array<string, array{label: string, icon: string, color: string}>
+     */
+    private const MODULE_META = [
+        'organization' => ['label' => 'Organization & Core', 'icon' => 'building', 'color' => 'blue'],
+        'business_units' => ['label' => 'Business Units', 'icon' => 'briefcase', 'color' => 'blue'],
+        'branches' => ['label' => 'Branch Management', 'icon' => 'map-pin', 'color' => 'blue'],
+        'users' => ['label' => 'Users & Access Control', 'icon' => 'users', 'color' => 'purple'],
+        'roles' => ['label' => 'Role Governance', 'icon' => 'shield', 'color' => 'purple'],
+        'audit' => ['label' => 'Audit & Compliance', 'icon' => 'clipboard', 'color' => 'purple'],
+        'cleaning' => ['label' => 'Cleaning Module', 'icon' => 'sparkles', 'color' => 'teal'],
+        'restaurant' => ['label' => 'Restaurant & Catering', 'icon' => 'utensils', 'color' => 'orange'],
+        'pos' => ['label' => 'Point of Sale', 'icon' => 'credit-card', 'color' => 'orange'],
+        'kitchen' => ['label' => 'Kitchen Operations', 'icon' => 'flame', 'color' => 'orange'],
+    ];
+
     public function index()
     {
         $roles = Role::with('permissions')->get();
+        $moduleGroups = $this->getGroupedPermissions();
 
-        return view('management.roles.index', compact('roles'));
+        return view('management.roles.index', compact('roles', 'moduleGroups'));
     }
 
     public function create()
     {
-        $permissions = Permission::all();
+        $moduleGroups = $this->getGroupedPermissions();
 
-        return view('management.roles.create', compact('permissions'));
+        return view('management.roles.create', compact('moduleGroups'));
     }
 
     public function store(Request $request)
@@ -45,10 +65,10 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions = Permission::all();
+        $moduleGroups = $this->getGroupedPermissions();
         $role->load('permissions');
 
-        return view('management.roles.edit', compact('role', 'permissions'));
+        return view('management.roles.edit', compact('role', 'moduleGroups'));
     }
 
     public function update(Request $request, Role $role)
@@ -83,5 +103,38 @@ class RoleController extends Controller
         $role->delete();
 
         return redirect()->route('management.roles.index')->with('success', 'Role deleted successfully.');
+    }
+
+    /**
+     * Group permissions by their module prefix with display metadata.
+     *
+     * @return array<int, array{key: string, label: string, icon: string, color: string, permissions: Collection}>
+     */
+    private function getGroupedPermissions(): array
+    {
+        $permissions = Permission::orderBy('name')->get();
+
+        $grouped = $permissions->groupBy(function (Permission $permission): string {
+            return explode('.', $permission->name)[0];
+        });
+
+        $result = [];
+        foreach ($grouped as $module => $perms) {
+            $meta = self::MODULE_META[$module] ?? [
+                'label' => ucfirst(str_replace('_', ' ', $module)),
+                'icon' => 'grid',
+                'color' => 'slate',
+            ];
+
+            $result[] = [
+                'key' => $module,
+                'label' => $meta['label'],
+                'icon' => $meta['icon'],
+                'color' => $meta['color'],
+                'permissions' => $perms,
+            ];
+        }
+
+        return $result;
     }
 }

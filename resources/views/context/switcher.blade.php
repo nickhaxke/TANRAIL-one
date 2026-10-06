@@ -20,6 +20,12 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @if($businessUnits->isEmpty())
             <p class="text-red-500 text-center">You are not assigned to any active Business Units.</p>
         @else

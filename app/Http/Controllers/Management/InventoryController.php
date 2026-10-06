@@ -59,13 +59,13 @@ class InventoryController extends Controller
 
         if ($buId) {
             $movementsQuery->where(function ($q) use ($buId) {
-                $q->whereHas('sourceLocation', fn($sq) => $sq->where('business_unit_id', $buId))
-                  ->orWhereHas('destinationLocation', fn($sq) => $sq->where('business_unit_id', $buId));
+                $q->whereHas('sourceLocation', fn ($sq) => $sq->where('business_unit_id', $buId))
+                    ->orWhereHas('destinationLocation', fn ($sq) => $sq->where('business_unit_id', $buId));
             });
         } elseif ($orgId) {
             $movementsQuery->where(function ($q) use ($orgId) {
-                $q->whereHas('sourceLocation', fn($sq) => $sq->where('organization_id', $orgId))
-                  ->orWhereHas('destinationLocation', fn($sq) => $sq->where('organization_id', $orgId));
+                $q->whereHas('sourceLocation', fn ($sq) => $sq->where('organization_id', $orgId))
+                    ->orWhereHas('destinationLocation', fn ($sq) => $sq->where('organization_id', $orgId));
             });
         }
 

@@ -1,6 +1,8 @@
 <?php
 
 use App\Domains\Core\Http\Middleware\EnsureActiveContext;
+use App\Http\Middleware\CheckCoordinatorAccess;
+use App\Http\Middleware\CheckSupervisorAccess;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'context.active' => EnsureActiveContext::class,
+            'coordinator' => CheckCoordinatorAccess::class,
+            'supervisor' => CheckSupervisorAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers\Management;
 
+use App\Domains\Core\Enums\PurchaseOrderStatus;
+use App\Domains\Core\Enums\SupplierInvoiceStatus;
+use App\Domains\Core\Models\BusinessUnit;
 use App\Domains\Core\Models\PurchaseOrder;
 use App\Domains\Core\Models\SupplierInvoice;
+use App\Domains\Core\Services\ContextManager;
 use App\Domains\Core\Services\PurchaseService;
 use App\Domains\Core\Services\SupplierInvoiceService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Domains\Core\Enums\PurchaseOrderStatus;
-use App\Domains\Core\Enums\SupplierInvoiceStatus;
 
 class ApprovalController extends Controller
 {
     public function index()
     {
-        $businessUnit = \App\Domains\Core\Models\BusinessUnit::find(app(\App\Domains\Core\Services\ContextManager::class)->getActiveBusinessUnitId());
-        
+        $businessUnit = BusinessUnit::find(app(ContextManager::class)->getActiveBusinessUnitId());
+
         $poQuery = PurchaseOrder::with(['supplier', 'businessUnit', 'lines.item'])
             ->where('status', 'submitted');
-            
+
         $invoiceQuery = SupplierInvoice::with(['supplier', 'businessUnit'])
             ->where('status', 'draft');
 
@@ -43,8 +45,8 @@ class ApprovalController extends Controller
             $bill = $invoiceService->createDraft(
                 $order->branch,
                 $order->supplier,
-                'BILL-' . $order->reference_number,
-                'REF-' . $order->id,
+                'BILL-'.$order->reference_number,
+                'REF-'.$order->id,
                 $order,
                 auth()->id() ?? 3 // fallback to demo user
             );
@@ -78,6 +80,7 @@ class ApprovalController extends Controller
             // Revert back to draft so Restaurant can see/edit it
             $order->status = PurchaseOrderStatus::DRAFT;
             $order->save();
+
             return back()->with('success', "Purchase Order {$order->reference_number} rejected and returned to draft.");
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
